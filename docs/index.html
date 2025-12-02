@@ -1,0 +1,1373 @@
+<!DOCTYPE html>
+<!--
+    D-IBAN - Dogecoin IBAN Converter
+    Author: Paulo Vidal (Dogecoin Foundation Dev)
+    GitHub: https://github.com/qlpqlp
+    X: https://x.com/inevitable360
+    Website: https://dogecoin.org
+-->
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>D-IBAN - Dogecoin IBAN Converter</title>
+    <link rel="icon" type="image/svg+xml" href="img/dogecoin.svg">
+    <link rel="apple-touch-icon" href="img/dogecoin.svg">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Comic Neue', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #0a0a0a;
+            min-height: 100vh;
+            padding: 20px;
+            color: #ffffff;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 20%, rgba(255, 193, 7, 0.03) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(255, 152, 0, 0.03) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: #1e1e1e;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            overflow: hidden;
+            border: 1px solid #333333;
+        }
+
+        .header {
+            background: #1a1a1a;
+            color: #ffffff;
+            padding: 40px 30px;
+            border-bottom: 1px solid #333333;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .header-left {
+            flex: 1;
+            text-align: center;
+        }
+
+        .header-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .header-button {
+            background: rgba(255, 255, 255, 0.1);
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-family: 'Comic Neue', sans-serif;
+            font-size: 0.95em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            backdrop-filter: blur(10px);
+        }
+
+        .header-button:hover {
+            background: rgba(255, 193, 7, 0.2);
+            border-color: #ffc107;
+            color: #ffc107;
+            transform: translateY(-2px);
+        }
+
+        .header-button .material-icons {
+            font-size: 1.2em;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 700;
+            color: #ffffff;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            color: #b0b0b0;
+        }
+
+        .tabs {
+            display: flex;
+            background: #1a1a1a;
+            border-bottom: 1px solid #333333;
+            overflow-x: auto;
+        }
+
+        .tab-button {
+            flex: 1;
+            padding: 20px;
+            background: transparent;
+            border: none;
+            border-bottom: 3px solid transparent;
+            cursor: pointer;
+            font-family: 'Comic Neue', sans-serif;
+            font-size: 1em;
+            font-weight: 600;
+            color: #b0b0b0;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            white-space: nowrap;
+        }
+
+        .tab-button:hover {
+            background: #252525;
+            color: #ffffff;
+        }
+
+        .tab-button.active {
+            color: #ffc107;
+            border-bottom-color: #ffc107;
+            background: #1e1e1e;
+        }
+
+        .tab-button .material-icons {
+            font-size: 1.2em;
+        }
+
+        .content {
+            padding: 40px 30px;
+            background: #1e1e1e;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .section {
+            padding: 0;
+        }
+
+        .section h2 {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            color: #ffc107;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section h2 .material-icons {
+            font-size: 1.2em;
+            vertical-align: middle;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #b0b0b0;
+        }
+
+        .input-group input,
+        .input-group textarea {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #333333;
+            border-radius: 8px;
+            font-size: 1em;
+            font-family: 'Courier New', monospace;
+            transition: all 0.3s ease;
+            background: #1a1a1a;
+            color: #ffffff;
+        }
+
+        .input-group input:focus,
+        .input-group textarea:focus {
+            outline: none;
+            border-color: #ffc107;
+            box-shadow: 0 0 0 3px rgba(255, 193, 7, 0.1);
+        }
+
+        .button {
+            background: linear-gradient(135deg, #ffc107, #ff8f00);
+            color: #000000;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            width: 100%;
+            margin-top: 10px;
+            font-family: 'Comic Neue', sans-serif;
+        }
+
+        .button:hover {
+            background: linear-gradient(135deg, #ff8f00, #ffc107);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(255, 193, 7, 0.3);
+        }
+
+        .button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(255, 193, 7, 0.2);
+        }
+
+        .result {
+            margin-top: 20px;
+            padding: 20px;
+            background: #1a1a1a;
+            border-radius: 8px;
+            border: 2px solid #333333;
+            min-height: 60px;
+            word-break: break-all;
+            font-family: 'Courier New', monospace;
+            font-size: 0.95em;
+            color: #ffffff;
+        }
+
+        .result.success {
+            border-color: #4caf50;
+            background: #1a3d1f;
+            color: #81c784;
+        }
+
+        .result.error {
+            border-color: #f44336;
+            background: #3d1b1b;
+            color: #e57373;
+        }
+
+        .result.info {
+            border-color: #ffc107;
+            background: #2a2a1a;
+            color: #ffeb3b;
+        }
+
+        .result-label {
+            font-weight: 600;
+            margin-bottom: 10px;
+            display: block;
+            font-family: 'Comic Neue', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        .copy-button {
+            background: #333333;
+            color: white;
+            border: 1px solid #444444;
+            padding: 8px 15px;
+            border-radius: 6px;
+            font-size: 0.85em;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: all 0.2s ease;
+            font-family: 'Comic Neue', sans-serif;
+        }
+
+        .copy-button:hover {
+            background: #444444;
+            border-color: #ffc107;
+        }
+
+        .copy-button.copied {
+            background: #4caf50;
+            border-color: #4caf50;
+            color: white;
+        }
+
+        .protocol-description {
+            background: #1a1a1a;
+            border: 1px solid #333333;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            color: #b0b0b0;
+            line-height: 1.7;
+            overflow: hidden;
+        }
+
+        .protocol-description-header {
+            padding: 15px 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            user-select: none;
+            transition: background 0.2s ease;
+        }
+
+        .protocol-description-header:hover {
+            background: #252525;
+        }
+
+        .protocol-description-header h3 {
+            color: #ffc107;
+            font-size: 1.2em;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .protocol-description-header .expand-icon {
+            color: #ffc107;
+            transition: transform 0.3s ease;
+        }
+
+        .protocol-description-header.expanded .expand-icon {
+            transform: rotate(180deg);
+        }
+
+        .protocol-description-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease, padding 0.3s ease;
+            padding: 0 20px;
+        }
+
+        .protocol-description-content.expanded {
+            max-height: none;
+            padding: 0 20px 20px 20px;
+        }
+
+        .protocol-description p {
+            margin-bottom: 12px;
+        }
+
+        .protocol-description ul {
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+
+        .protocol-description li {
+            margin-bottom: 8px;
+        }
+
+        .protocol-description strong {
+            color: #ffc107;
+        }
+
+        .protocol-description .highlight {
+            color: #ffeb3b;
+            font-weight: 600;
+        }
+
+        /* Code Snippet Styling - Matching dogecoin-core-docs */
+        .code-container {
+            position: relative;
+            margin: 15px 0;
+        }
+
+        .code-container pre {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            border: 1px solid #333333;
+            font-family: 'Courier New', 'Consolas', 'Monaco', monospace;
+            font-size: 0.9em;
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        .code-container pre code {
+            color: #d4d4d4;
+            background: transparent;
+            padding: 0;
+            border: none;
+            display: block;
+            white-space: pre;
+        }
+
+        /* Syntax highlighting colors */
+        pre .keyword { color: #569cd6; }
+        pre .string { color: #ce9178; }
+        pre .function { color: #dcdcaa; }
+        pre .comment { color: #6a9955; }
+        pre .number { color: #b5cea8; }
+        pre .operator { color: #d4d4d4; }
+
+        /* Code Copy Button */
+        .code-copy-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #333333;
+            color: #d4d4d4;
+            border: 1px solid #444444;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.85em;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: 'Comic Neue', sans-serif;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            z-index: 10;
+        }
+
+        .code-copy-button:hover {
+            background: #444444;
+            border-color: #ffc107;
+            color: #ffc107;
+        }
+
+        .code-copy-button.copied {
+            background: #4caf50;
+            border-color: #4caf50;
+            color: white;
+        }
+
+        .code-copy-button .material-icons {
+            font-size: 1em;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2em;
+            }
+
+            .content {
+                padding: 30px 20px;
+            }
+
+            .tab-button {
+                padding: 15px 10px;
+                font-size: 0.9em;
+            }
+
+            .tab-button .material-icons {
+                font-size: 1em;
+            }
+
+            .header {
+                padding: 30px 20px;
+            }
+
+            .header-content {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .header-left {
+                width: 100%;
+            }
+
+            .header-buttons {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .header-button {
+                flex: 1;
+                min-width: 150px;
+                font-size: 0.85em;
+                padding: 10px 15px;
+            }
+
+            .header h1 {
+                font-size: 1.8em;
+            }
+        }
+
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #b0b0b0;
+            font-size: 0.9em;
+            background: #1a1a1a;
+            border-top: 1px solid #333333;
+        }
+
+        .footer-github {
+            margin-top: 15px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: #b0b0b0;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            padding: 8px 15px;
+            border-radius: 6px;
+        }
+
+        .footer-github:hover {
+            color: #ffc107;
+            background: rgba(255, 193, 7, 0.1);
+        }
+
+        .footer-github .material-icons {
+            font-size: 1.2em;
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 2000;
+            backdrop-filter: blur(4px);
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .modal {
+            background: #1e1e1e;
+            border-radius: 16px;
+            border: 1px solid #333333;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow: hidden;
+            animation: slideUp 0.3s ease;
+        }
+
+        .modal-header {
+            padding: 25px 30px;
+            border-bottom: 1px solid #333333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #1a1a1a;
+        }
+
+        .modal-header h3 {
+            color: #ffc107;
+            font-size: 1.5em;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .modal-close {
+            background: transparent;
+            border: none;
+            color: #b0b0b0;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .modal-close:hover {
+            background: #333333;
+            color: #ffc107;
+        }
+
+        .modal-body {
+            padding: 30px;
+        }
+
+        .modal-options {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .modal-option {
+            background: #1a1a1a;
+            border: 2px solid #333333;
+            border-radius: 12px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            text-decoration: none;
+            color: #ffffff;
+        }
+
+        .modal-option:hover {
+            border-color: #ffc107;
+            background: rgba(255, 193, 7, 0.1);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 193, 7, 0.2);
+        }
+
+        .modal-option-icon {
+            width: 48px;
+            height: 48px;
+            background: rgba(255, 193, 7, 0.1);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .modal-option-icon .material-icons {
+            font-size: 28px;
+            color: #ffc107;
+        }
+
+        .modal-option-content {
+            flex: 1;
+        }
+
+        .modal-option-title {
+            font-size: 1.2em;
+            font-weight: 600;
+            color: #ffffff;
+            margin-bottom: 5px;
+        }
+
+        .modal-option-description {
+            font-size: 0.9em;
+            color: #b0b0b0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="header-content">
+                <div class="header-left">
+                    <h1><span class="material-icons" style="font-size: 1.2em; vertical-align: middle; margin-right: 10px;">account_balance_wallet</span>D-IBAN</h1>
+                    <p>Dogecoin Protocol IBAN Address Format Converter</p>
+                </div>
+                <div class="header-buttons">
+                    <button class="header-button" onclick="switchTab('wallet')">
+                        <span class="material-icons">phone_android</span>
+                        <span>Wallet Implementation</span>
+                    </button>
+                    <button class="header-button" onclick="switchTab('bank')">
+                        <span class="material-icons">account_balance</span>
+                        <span>Bank Implementation</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="tabs">
+            <button class="tab-button active" onclick="switchTab('encode')">
+                <span class="material-icons">swap_horiz</span>
+                <span>Convert</span>
+            </button>
+            <button class="tab-button" onclick="switchTab('verify')">
+                <span class="material-icons">verified</span>
+                <span>Verify</span>
+            </button>
+            <button class="tab-button" onclick="switchTab('decode')">
+                <span class="material-icons">lock_open</span>
+                <span>Decode</span>
+            </button>
+            <button class="tab-button" onclick="showConverterModal()">
+                <span class="material-icons">apps</span>
+                <span>Other Converters</span>
+            </button>
+        </div>
+
+        <div class="content">
+            <!-- Convert Dogecoin to D-IBAN -->
+            <div id="encode-tab" class="tab-content active">
+                <div class="section">
+                    <h2><span class="material-icons">swap_horiz</span>Convert Dogecoin Address to D-IBAN</h2>
+                    
+                    <div class="protocol-description">
+                        <div class="protocol-description-header" onclick="toggleProtocolDescription(this)">
+                            <h3><span class="material-icons">info</span>How the Encoding Protocol Works</h3>
+                            <span class="material-icons expand-icon">expand_more</span>
+                        </div>
+                        <div class="protocol-description-content">
+                        <p>
+                            <strong>D-IBAN (Dogecoin IBAN)</strong> uses the same <span class="highlight">ISO 13616-1:2020 IBAN standard</span> that banks worldwide use for international bank account numbers. This is the latest international standard (Edition 2, published 2020) that specifies the structure of IBANs for financial services. This ensures full compatibility and familiarity with the existing financial infrastructure.
+                        </p>
+                        <p><strong>The encoding process:</strong></p>
+                        <ul>
+                            <li><strong>Base58 to Bytes:</strong> Your Dogecoin address (Base58Check format) is first decoded into its raw byte representation (25 bytes)</li>
+                            <li><strong>Base36 Encoding:</strong> The bytes are then encoded into Base36 format (0-9, A-Z) to create a 39-character payload that's compatible with IBAN's alphanumeric requirements</li>
+                            <li><strong>IBAN Structure:</strong> The D-IBAN follows the standard IBAN format: <code>DO[CC][TT][BBBB...]</code> where:
+                                <ul>
+                                    <li><strong>DO</strong> = Country code (Dogecoin)</li>
+                                    <li><strong>CC</strong> = 2-digit checksum (MOD-97-10 algorithm)</li>
+                                    <li><strong>TT</strong> = Address type code:
+                                        <ul>
+                                            <li><strong>00</strong> = P2PKH (Pay-to-Public-Key-Hash) - Standard addresses starting with 'D'</li>
+                                            <li><strong>01</strong> = P2SH (Pay-to-Script-Hash) - Multisig and script addresses starting with '9' or 'A'</li>
+                                            <li><strong>02</strong> = P2WPKH (Pay-to-Witness-Public-Key-Hash) - Bech32 addresses starting with 'doge1'</li>
+                                            <li><strong>03</strong> = P2SH-CLTV (Time-locked addresses) - Script addresses with CheckLockTimeVerify</li>
+                                        </ul>
+                                    </li>
+                                    <li><strong>BBBB...</strong> = 39-character Base36 encoded payload</li>
+                                </ul>
+                            </li>
+                            <li><strong>Address Type Detection:</strong> The protocol automatically detects the address type from the address prefix:
+                                <ul>
+                                    <li>Addresses starting with <strong>'D'</strong> → P2PKH (most common)</li>
+                                    <li>Addresses starting with <strong>'9'</strong> or <strong>'A'</strong> → P2SH (multisig, time-locked, etc.)</li>
+                                    <li>Addresses starting with <strong>'doge1'</strong> → P2WPKH (Bech32 witness addresses)</li>
+                                </ul>
+                            </li>
+                            <li><strong>MOD-97 Checksum:</strong> Uses the same MOD-97-10 algorithm used by banks worldwide to validate IBAN codes, ensuring data integrity and error detection</li>
+                        </ul>
+                        <p>
+                            This protocol allows Dogecoin addresses to be represented in a standardized, internationally-recognized format that's easy to read, verify, and use in traditional banking systems and payment processors.
+                        </p>
+                        <p>
+                            <strong>Supported Address Types:</strong>
+                            <ul>
+                                <li><strong>P2PKH (00):</strong> Standard single-signature addresses (most common)</li>
+                                <li><strong>P2SH (01):</strong> Script-based addresses including multisig wallets, time-locked addresses (CLTV), and other advanced scripts</li>
+                                <li><strong>P2WPKH (02):</strong> Segregated Witness addresses using Bech32 encoding</li>
+                                <li><strong>P2SH-CLTV (03):</strong> Explicitly marked time-locked addresses with CheckLockTimeVerify scripts</li>
+                            </ul>
+                        </p>
+                        <p>
+                            <strong>ISO Standard Compliance:</strong> D-IBAN fully complies with <a href="https://www.iso.org/standard/81090.html" target="_blank" style="color: #ffc107; text-decoration: underline;">ISO 13616-1:2020</a> (Financial services — International bank account number — Part 1: Structure of the IBAN), ensuring it meets the same rigorous standards used by financial institutions globally.
+                        </p>
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="doge-input">Dogecoin Address (P2PKH, P2SH, P2WPKH, or Time-locked):</label>
+                        <input type="text" id="doge-input" placeholder="e.g., DTqAFgNNUgiPEfFmc4HZUkqJ4sz5vADd1n (P2PKH) or 9xxx... (P2SH) or doge1... (P2WPKH)">
+                    </div>
+                    <button class="button" onclick="convertToDIBAN()">Convert to D-IBAN</button>
+                    <div id="encode-result" class="result" style="display: none;"></div>
+                </div>
+            </div>
+
+            <!-- Verify D-IBAN -->
+            <div id="verify-tab" class="tab-content">
+                <div class="section">
+                    <h2><span class="material-icons">verified</span>Verify D-IBAN</h2>
+                    
+                    <div class="protocol-description">
+                        <div class="protocol-description-header" onclick="toggleProtocolDescription(this)">
+                            <h3><span class="material-icons">verified_user</span>IBAN Verification Protocol</h3>
+                            <span class="material-icons expand-icon">expand_more</span>
+                        </div>
+                        <div class="protocol-description-content">
+                        <p>
+                            D-IBAN verification uses the <span class="highlight">exact same MOD-97-10 checksum algorithm</span> that banks use worldwide to validate IBAN codes. This follows the <strong>ISO 13616-1:2020</strong> international standard (Edition 2, published 2020) for bank account number validation, ensuring full compliance with current banking regulations and financial services requirements.
+                        </p>
+                        <p><strong>The verification process:</strong></p>
+                        <ul>
+                            <li><strong>Format Check:</strong> First validates the structure matches the IBAN pattern: <code>DO[0-9]{2}[0-9]{2}[A-Z0-9]{39}</code></li>
+                            <li><strong>Character Validation:</strong> Ensures all characters are valid (letters and numbers only, no special characters)</li>
+                            <li><strong>MOD-97-10 Algorithm:</strong> The same algorithm banks use:
+                                <ul>
+                                    <li>Rearranges the IBAN by moving the first 4 characters (country code + checksum) to the end</li>
+                                    <li>Converts letters to numbers (A=10, B=11, ..., Z=35) as per IBAN standard</li>
+                                    <li>Performs MOD-97 calculation on the entire string</li>
+                                    <li>Valid IBANs result in a remainder of 1</li>
+                                </ul>
+                            </li>
+                            <li><strong>Checksum Validation:</strong> The embedded checksum digits are recalculated and compared to ensure the code hasn't been corrupted or mistyped</li>
+                        </ul>
+                        <p>
+                            This verification ensures that any D-IBAN code is mathematically valid and follows the same rigorous standards as traditional bank IBANs. It can detect single-digit errors, transpositions, and other common mistakes with 99.9% accuracy.
+                        </p>
+                        <p>
+                            <strong>ISO Standard Compliance:</strong> The verification algorithm strictly adheres to <a href="https://www.iso.org/standard/81090.html" target="_blank" style="color: #ffc107; text-decoration: underline;">ISO 13616-1:2020</a> specifications, ensuring compatibility with all banking systems and financial software that process IBAN codes.
+                        </p>
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="verify-input">D-IBAN Code:</label>
+                        <input type="text" id="verify-input" placeholder="e.g., DO12 0000 1234 5678 9012 3456 7890 1234 5678 9012 3456 789">
+                    </div>
+                    <button class="button" onclick="verifyDIBANInput()">Verify D-IBAN</button>
+                    <div id="verify-result" class="result" style="display: none;"></div>
+                </div>
+            </div>
+
+            <!-- Decode D-IBAN -->
+            <div id="decode-tab" class="tab-content">
+                <div class="section">
+                    <h2><span class="material-icons">lock_open</span>Decode D-IBAN to Dogecoin Address</h2>
+                    
+                    <div class="protocol-description">
+                        <div class="protocol-description-header" onclick="toggleProtocolDescription(this)">
+                            <h3><span class="material-icons">code</span>Decoding Protocol</h3>
+                            <span class="material-icons expand-icon">expand_more</span>
+                        </div>
+                        <div class="protocol-description-content">
+                        <p>
+                            Decoding reverses the encoding process to recover the original Dogecoin address. The protocol ensures <span class="highlight">lossless conversion</span> - you can encode and decode indefinitely without losing any data.
+                        </p>
+                        <p><strong>The decoding process:</strong></p>
+                        <ul>
+                            <li><strong>Verification First:</strong> Before decoding, the D-IBAN is verified using the MOD-97-10 checksum to ensure it's valid and hasn't been corrupted</li>
+                            <li><strong>Type Extraction:</strong> The address type code (TT) is extracted to determine how to decode the payload</li>
+                            <li><strong>Payload Extraction:</strong> The 39-character Base36 payload is extracted from the D-IBAN (skipping the country code, checksum, and type fields)</li>
+                            <li><strong>Base36 to Bytes:</strong> The Base36 string is converted back to its 25-byte binary representation</li>
+                            <li><strong>Address Reconstruction:</strong> Based on the type code:
+                                <ul>
+                                    <li><strong>P2PKH (00) & P2SH (01):</strong> Bytes are encoded into Base58Check format</li>
+                                    <li><strong>P2WPKH (02):</strong> Bytes are decoded from UTF-8 to recover the Bech32 address</li>
+                                    <li><strong>P2SH-CLTV (03):</strong> Bytes are encoded into Base58Check format (time-locked script addresses)</li>
+                                </ul>
+                            </li>
+                            <li><strong>Type Information:</strong> The decoded address includes its type information (P2PKH, P2SH, P2WPKH, etc.) for proper handling</li>
+                        </ul>
+                        <p>
+                            This bidirectional conversion allows D-IBAN codes to be used in traditional banking systems, payment processors, and financial software while maintaining full compatibility with the Dogecoin blockchain. The protocol is <strong>reversible</strong> - any valid D-IBAN can be decoded back to its original Dogecoin address with 100% accuracy.
+                        </p>
+                        <p>
+                            <strong>Use Cases:</strong> This enables Dogecoin addresses to be integrated into banking systems, accounting software, payment gateways, and other financial infrastructure that expects IBAN-format account numbers, while maintaining full blockchain compatibility.
+                        </p>
+                        <p>
+                            <strong>ISO Standard Compliance:</strong> The decoding process maintains full compliance with <a href="https://www.iso.org/standard/81090.html" target="_blank" style="color: #ffc107; text-decoration: underline;">ISO 13616-1:2020</a>, ensuring that D-IBAN codes can be processed by any system that handles standard IBAN formats, including international banking networks and financial service providers.
+                        </p>
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="decode-input">D-IBAN Code:</label>
+                        <input type="text" id="decode-input" placeholder="e.g., DO12 0000 1234 5678 9012 3456 7890 1234 5678 9012 3456 789">
+                    </div>
+                    <button class="button" onclick="decodeDIBANInput()">Decode to Dogecoin Address</button>
+                    <div id="decode-result" class="result" style="display: none;"></div>
+                </div>
+            </div>
+
+            <!-- Dogecoin Wallet Implementation -->
+            <div id="wallet-tab" class="tab-content">
+                <div class="section">
+                    <h2><span class="material-icons">phone_android</span>Dogecoin Wallet Implementation</h2>
+                    
+                    <div class="protocol-description">
+                        <div class="protocol-description-header expanded" onclick="toggleProtocolDescription(this)">
+                            <h3><span class="material-icons">code</span>Integration Guide</h3>
+                            <span class="material-icons expand-icon">expand_more</span>
+                        </div>
+                        <div class="protocol-description-content expanded">
+                        <p>
+                            Integrating D-IBAN into a Dogecoin wallet is straightforward. The D-IBAN library is lightweight (~10KB) and can be easily integrated into mobile apps, web wallets, or desktop applications.
+                        </p>
+
+                        <h4 style="color: #ffc107; margin-top: 20px; margin-bottom: 10px;">Step 1: Include the Library</h4>
+                        <p><strong>For Web Wallets:</strong></p>
+                        <div class="code-container">
+                            <button class="code-copy-button" onclick="copyCode(this)" title="Copy code">
+                                <span class="material-icons">content_copy</span>
+                                <span>Copy</span>
+                            </button>
+                            <pre><code>&lt;script src="js/diban.js"&gt;&lt;/script&gt;</code></pre>
+                        </div>
+
+                        <p><strong>For Node.js/React Native:</strong></p>
+                        <div class="code-container">
+                            <button class="code-copy-button" onclick="copyCode(this)" title="Copy code">
+                                <span class="material-icons">content_copy</span>
+                                <span>Copy</span>
+                            </button>
+                            <pre><code>const { encodeDIBAN, decodeDIBAN, verifyDIBAN } = require('./js/diban.js');</code></pre>
+                        </div>
+
+                        <h4 style="color: #ffc107; margin-top: 20px; margin-bottom: 10px;">Step 2: Generate D-IBAN for User Addresses</h4>
+                        <p>When displaying a user's receive address, generate and show the D-IBAN format:</p>
+                        <div class="code-container">
+                            <button class="code-copy-button" onclick="copyCode(this)" title="Copy code">
+                                <span class="material-icons">content_copy</span>
+                                <span>Copy</span>
+                            </button>
+                            <pre><code>// User's Dogecoin address
+const userAddress = "DTqAFgNNUgiPEfFmc4HZUkqJ4sz5vADd1n";
+
+// Generate D-IBAN
+const result = encodeDIBAN(userAddress);
+
+// Display both formats
+console.log("Dogecoin Address:", userAddress);
+console.log("D-IBAN Code:", result.diban);
+console.log("Address Type:", result.type.name);</code></pre>
+                        </div>
+
+                        <h4 style="color: #ffc107; margin-top: 20px; margin-bottom: 10px;">Step 3: Accept D-IBAN for Payments</h4>
+                        <p>Allow users to paste D-IBAN codes when sending payments:</p>
+                        <div class="code-container">
+                            <button class="code-copy-button" onclick="copyCode(this)" title="Copy code">
+                                <span class="material-icons">content_copy</span>
+                                <span>Copy</span>
+                            </button>
+                            <pre><code>// User pastes D-IBAN
+const userInput = "DO12 0000 1234 5678 9012 3456 7890 1234 5678 9012 3456 789";
+
+// Verify first
+if (verifyDIBAN(userInput)) {
+    // Decode to Dogecoin address
+    const decoded = decodeDIBAN(userInput);
+    
+    // Use the address for payment
+    sendPayment(decoded.address, amount);
+} else {
+    showError("Invalid D-IBAN code");
+}</code></pre>
+                        </div>
+
+                        <h4 style="color: #ffc107; margin-top: 20px; margin-bottom: 10px;">Step 4: Display D-IBAN in QR Codes</h4>
+                        <p>Include D-IBAN in QR codes for easy sharing:</p>
+                        <div class="code-container">
+                            <button class="code-copy-button" onclick="copyCode(this)" title="Copy code">
+                                <span class="material-icons">content_copy</span>
+                                <span>Copy</span>
+                            </button>
+                            <pre><code>// Generate QR code with both formats
+const qrData = {
+    address: userAddress,
+    diban: result.diban,
+    type: result.type.name
+};
+
+generateQRCode(JSON.stringify(qrData));</code></pre>
+                        </div>
+
+                        <h4 style="color: #ffc107; margin-top: 20px; margin-bottom: 10px;">Benefits for Wallet Users</h4>
+                        <ul>
+                            <li><strong>Banking Integration:</strong> Users can share D-IBAN codes with banks and payment processors</li>
+                            <li><strong>Easy Sharing:</strong> D-IBAN format is familiar and easy to share</li>
+                            <li><strong>Error Detection:</strong> Built-in checksum prevents typos</li>
+                            <li><strong>Multiple Formats:</strong> Display both traditional address and D-IBAN</li>
+                            <li><strong>Type Information:</strong> Automatically detects and displays address type</li>
+                        </ul>
+
+                        <h4 style="color: #ffc107; margin-top: 20px; margin-bottom: 10px;">UI Integration Example</h4>
+                        <p>Add a toggle or button to show D-IBAN format:</p>
+                        <div class="code-container">
+                            <button class="code-copy-button" onclick="copyCode(this)" title="Copy code">
+                                <span class="material-icons">content_copy</span>
+                                <span>Copy</span>
+                            </button>
+                            <pre><code>// In your wallet UI
+function showReceiveAddress(address) {
+    const diban = encodeDIBAN(address);
+    
+    return `
+        &lt;div class="address-display"&gt;
+            &lt;button onclick="toggleFormat()"&gt;Show D-IBAN&lt;/button&gt;
+            &lt;div class="address"&gt;${address}&lt;/div&gt;
+            &lt;div class="diban" style="display: none;"&gt;${diban.diban}&lt;/div&gt;
+            &lt;div class="type"&gt;Type: ${diban.type.name}&lt;/div&gt;
+        &lt;/div&gt;
+    `;
+}</code></pre>
+                        </div>
+
+                        <p style="margin-top: 20px;">
+                            <strong>Note:</strong> The D-IBAN library is lightweight and works in both browser and Node.js environments. No external dependencies are required.
+                        </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bank Implementation -->
+            <div id="bank-tab" class="tab-content">
+                <div class="section">
+                    <h2><span class="material-icons">account_balance</span>Bank Implementation</h2>
+                    
+                    <div class="protocol-description">
+                        <div class="protocol-description-header expanded" onclick="toggleProtocolDescription(this)">
+                            <h3><span class="material-icons">business</span>Integration Guide</h3>
+                            <span class="material-icons expand-icon">expand_more</span>
+                        </div>
+                        <div class="protocol-description-content expanded">
+                        <p>
+                            Banks can implement D-IBAN with <strong>minimal structural changes</strong> because it uses the same <span class="highlight">ISO 13616-1:2020</span> standard that banks already use for traditional IBAN processing.
+                        </p>
+
+                        <h4 style="color: #ffc107; margin-top: 20px; margin-bottom: 10px;">Why Minimal Changes Are Needed</h4>
+                        <ul>
+                            <li><strong>Same ISO Standard:</strong> D-IBAN uses ISO 13616-1:2020 - the exact same standard banks use</li>
+                            <li><strong>Same Validation:</strong> MOD-97-10 checksum algorithm (already implemented)</li>
+                            <li><strong>Same Format:</strong> Standard IBAN structure banks already process</li>
+                            <li><strong>Reuses Infrastructure:</strong> Existing IBAN validation, routing, and processing systems</li>
+                        </ul>
+
+                        <h4 style="color: #ffc107; margin-top: 20px; margin-bottom: 10px;">Implementation Approach: Country Code Registration</h4>
+                        <p>The recommended approach is to register "DO" as an official IBAN country code for Dogecoin. Banks can then treat D-IBAN codes like any other international IBAN.</p>
+
+                        <h4 style="color: #ffc107; margin-top: 20px; margin-bottom: 10px;">Step 1: Add Country Code Routing</h4>
+                        <p>Add one condition to your existing IBAN router:</p>
+                        <div class="code-container">
+                            <button class="code-copy-button" onclick="copyCode(this)" title="Copy code">
+                                <span class="material-icons">content_copy</span>
+                                <span>Copy</span>
+                            </button>
+                            <pre><code>function routeIBAN(iban) {
+    const countryCode = iban.substring(0, 2);
+    
+    // Add this condition (new)
+    if (countryCode === "DO") {
+        return processDogecoinIBAN(iban);
+    }
+    
+    // Existing routing (unchanged)
+    return processTraditionalIBAN(iban);
+}</code></pre>
+                        </div>
+
+                        <h4 style="color: #ffc107; margin-top: 20px; margin-bottom: 10px;">Step 2: Reuse Existing Validation</h4>
+                        <p>Your existing IBAN validator already works for D-IBAN:</p>
+                        <div class="code-container">
+                            <button class="code-copy-button" onclick="copyCode(this)" title="Copy code">
+                                <span class="material-icons">content_copy</span>
+                                <span>Copy</span>
+                            </button>
+                            <pre><code>// Existing validation function (no changes needed)
+function validateIBAN(iban) {
+    const clean = iban.replace(/\s+/g, "");
+    const rearr = clean.slice(4) + clean.slice(0, 4);
+    return mod97Check(rearr) === 1;  // Works for D-IBAN too!
+}</code></pre>
+                        </div>
+
+                        <h4 style="color: #ffc107; margin-top: 20px; margin-bottom: 10px;">Step 3: Create Dogecoin Processing Module</h4>
+                        <p>Create an isolated module for Dogecoin processing:</p>
+                        <div class="code-container">
+                            <button class="code-copy-button" onclick="copyCode(this)" title="Copy code">
+                                <span class="material-icons">content_copy</span>
+                                <span>Copy</span>
+                            </button>
+                            <pre><code>// New module (isolated, ~260 lines of code)
+function processDogecoinIBAN(diban) {
+    // Decode D-IBAN to Dogecoin address
+    const { address, type } = decodeDIBAN(diban);
+    
+    // Process using existing payment infrastructure
+    return processPayment({
+        address: address,
+        type: type.name,
+        blockchain: 'dogecoin'
+    });
+}</code></pre>
+                        </div>
+
+                        <h4 style="color: #ffc107; margin-top: 20px; margin-bottom: 10px;">What Banks Need to Change</h4>
+                        <p><strong>Existing Systems (No Changes):</strong></p>
+                        <ul>
+                            <li>✅ IBAN validation engine</li>
+                            <li>✅ MOD-97-10 checksum algorithm</li>
+                            <li>✅ Payment routing infrastructure</li>
+                            <li>✅ Transaction processing systems</li>
+                            <li>✅ Account management</li>
+                        </ul>
+
+                        <p><strong>New Components (Isolated):</strong></p>
+                        <ul>
+                            <li>⚪ D-IBAN decoder module (~200 lines)</li>
+                            <li>⚪ Dogecoin address validator (~50 lines)</li>
+                            <li>⚪ Country code router condition (~10 lines)</li>
+                            <li>⚪ Optional: D-IBAN mapping table</li>
+                        </ul>
+
+                        <h4 style="color: #ffc107; margin-top: 20px; margin-bottom: 10px;">Implementation Phases</h4>
+                        <ol>
+                            <li><strong>Week 1: Validation Integration</strong> - Add D-IBAN validation (Low Risk)</li>
+                            <li><strong>Week 2: Routing Integration</strong> - Add "DO" country code routing (Low Risk)</li>
+                            <li><strong>Week 3-4: Processing Integration</strong> - Implement Dogecoin payment processing (Medium Risk)</li>
+                            <li><strong>Week 5-6: Testing & Deployment</strong> - End-to-end testing and gradual rollout</li>
+                        </ol>
+
+                        <h4 style="color: #ffc107; margin-top: 20px; margin-bottom: 10px;">Benefits for Banks</h4>
+                        <ul>
+                            <li><strong>Leverage Existing Infrastructure:</strong> Reuse IBAN validation, payment processing, and compliance systems</li>
+                            <li><strong>Minimal Development Cost:</strong> ~260 lines of isolated, testable code</li>
+                            <li><strong>Standards Compliant:</strong> Uses existing ISO 13616-1:2020 standard</li>
+                            <li><strong>Low Risk:</strong> Isolated module, easy to test and deploy</li>
+                            <li><strong>Future-Proof:</strong> Easy to add other cryptocurrencies</li>
+                        </ul>
+
+                        <h4 style="color: #ffc107; margin-top: 20px; margin-bottom: 10px;">Complete Integration Example</h4>
+                        <div class="code-container">
+                            <button class="code-copy-button" onclick="copyCode(this)" title="Copy code">
+                                <span class="material-icons">content_copy</span>
+                                <span>Copy</span>
+                            </button>
+                            <pre><code>// Existing Payment Service (minimal modification)
+class PaymentService {
+    async process(iban, amount) {
+        // Validate (works for D-IBAN)
+        if (!this.ibanService.validate(iban)) {
+            throw new Error("Invalid IBAN");
+        }
+        
+        const countryCode = iban.substring(0, 2);
+        
+        // Add Dogecoin routing (new)
+        if (countryCode === "DO") {
+            return await this.processDogecoin(iban, amount);
+        }
+        
+        // Existing processing (unchanged)
+        return await this.processTraditional(iban, amount);
+    }
+    
+    // New method (isolated)
+    async processDogecoin(diban, amount) {
+        const { address } = decodeDIBAN(diban);
+        return await this.blockchainService.send(address, amount);
+    }
+}</code></pre>
+                        </div>
+
+                        <p style="margin-top: 20px;">
+                            <strong>For detailed implementation guide, code samples, security considerations, and compliance guidelines, see:</strong> <a href="BANK_IMPLEMENTATION.md" target="_blank" style="color: #ffc107; text-decoration: underline;">BANK_IMPLEMENTATION.md</a>
+                        </p>
+
+                        <p style="margin-top: 15px;">
+                            <strong>Cost Estimation:</strong> ~2-3 weeks development time, minimal infrastructure costs, isolated module for easy maintenance.
+                        </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DogeMoji Protocol -->
+            <div id="dogemoji-tab" class="tab-content">
+                <div class="section">
+                    <h2><span class="material-icons">emoji_emotions</span>DogeMoji - Emoji Address Protocol</h2>
+                    
+                    <div class="protocol-description">
+                        <div class="protocol-description-header expanded" onclick="toggleProtocolDescription(this)">
+                            <h3><span class="material-icons">info</span>About DogeMoji Protocol</h3>
+                            <span class="material-icons expand-icon">expand_more</span>
+                        </div>
+                        <div class="protocol-description-content expanded">
+                        <p>
+                            <strong>DogeMoji</strong> is a compact, user-friendly protocol that converts Dogecoin addresses into emoji sequences. It's designed to be more memorable, shareable, and visually appealing than traditional addresses.
+                        </p>
+                        <p><strong>Key Features:</strong></p>
+                        <ul>
+                            <li><strong>Compact Format:</strong> Emoji sequences are shorter and easier to share than traditional addresses</li>
+                            <li><strong>Visual Appeal:</strong> Uses fun emojis that are easy to recognize and remember</li>
+                            <li><strong>Built-in Validation:</strong> Includes checksum emoji for error detection</li>
+                            <li><strong>Reversible:</strong> 100% lossless conversion - can decode back to original address</li>
+                            <li><strong>Type Detection:</strong> Automatically detects and encodes address type (P2PKH, P2SH, P2WPKH)</li>
+                            <li><strong>Universal:</strong> Works with any Dogecoin address type</li>
+                        </ul>
+                        <p><strong>How It Works:</strong></p>
+                        <ul>
+                            <li><strong>Encoding:</strong> Converts 25-byte address to emoji sequence using 64-emoji base encoding</li>
+                            <li><strong>Type Emoji:</strong> First emoji indicates address type (🐕=P2PKH, 🔐=P2SH, 🚀=P2WPKH, ⏰=Time-locked)</li>
+                            <li><strong>Payload:</strong> Address bytes encoded as emoji sequence</li>
+                            <li><strong>Checksum:</strong> Last emoji is a checksum for validation (✅, ✔️, ✓, ☑️, 🔒, 🔐, 🔑, 🎫)</li>
+                        </ul>
+                        <p>
+                            <strong>Use Cases:</strong> Perfect for social media sharing, QR codes, easy-to-remember addresses, and making cryptocurrency more accessible and fun!
+                        </p>
+                        </div>
+                    </div>
+
+                    <h3 style="color: #ffc107; margin-top: 30px; margin-bottom: 15px;"><span class="material-icons" style="font-size: 1em; vertical-align: middle;">swap_horiz</span> Convert to DogeMoji</h3>
+                    <div class="input-group">
+                        <label for="dogemoji-input">Dogecoin Address:</label>
+                        <input type="text" id="dogemoji-input" placeholder="e.g., DTqAFgNNUgiPEfFmc4HZUkqJ4sz5vADd1n">
+                    </div>
+                    <button class="button" onclick="convertToDogeMoji()">Convert to DogeMoji</button>
+                    <div id="dogemoji-encode-result" class="result" style="display: none;"></div>
+
+                    <h3 style="color: #ffc107; margin-top: 30px; margin-bottom: 15px;"><span class="material-icons" style="font-size: 1em; vertical-align: middle;">verified</span> Verify DogeMoji</h3>
+                    <div class="input-group">
+                        <label for="dogemoji-verify-input">DogeMoji Sequence:</label>
+                        <input type="text" id="dogemoji-verify-input" placeholder="Paste emoji sequence here">
+                    </div>
+                    <button class="button" onclick="verifyDogeMojiInput()">Verify DogeMoji</button>
+                    <div id="dogemoji-verify-result" class="result" style="display: none;"></div>
+
+                    <h3 style="color: #ffc107; margin-top: 30px; margin-bottom: 15px;"><span class="material-icons" style="font-size: 1em; vertical-align: middle;">lock_open</span> Decode DogeMoji</h3>
+                    <div class="input-group">
+                        <label for="dogemoji-decode-input">DogeMoji Sequence:</label>
+                        <input type="text" id="dogemoji-decode-input" placeholder="Paste emoji sequence here">
+                    </div>
+                    <button class="button" onclick="decodeDogeMojiInput()">Decode to Dogecoin Address</button>
+                    <div id="dogemoji-decode-result" class="result" style="display: none;"></div>
+                </div>
+            </div>
+
+            <!-- DogeWords Protocol -->
+            <div id="dogewords-tab" class="tab-content">
+                <div class="section">
+                    <h2><span class="material-icons">text_fields</span>DogeWords - Word Address Protocol</h2>
+                    
+                    <div class="protocol-description">
+                        <div class="protocol-description-header expanded" onclick="toggleProtocolDescription(this)">
+                            <h3><span class="material-icons">info</span>About DogeWords Protocol</h3>
+                            <span class="material-icons expand-icon">expand_more</span>
+                        </div>
+                        <div class="protocol-description-content expanded">
+                        <p>
+                            <strong>DogeWords</strong> is a mnemonic-style protocol that converts Dogecoin addresses into sequences of short, positive, kind words. It's designed to be easy to read, remember, and share - perfect for human-friendly address representation.
+                        </p>
+                        <p><strong>Key Features:</strong></p>
+                        <ul>
+                            <li><strong>Human-Friendly:</strong> Uses short, positive words that are easy to read and remember</li>
+                            <li><strong>Kind & Positive:</strong> All words are carefully selected to be positive and kind</li>
+                            <li><strong>Mnemonic Style:</strong> Similar to seed phrase mnemonics, but for addresses</li>
+                            <li><strong>Built-in Validation:</strong> Includes checksum word for error detection</li>
+                            <li><strong>Reversible:</strong> 100% lossless conversion - can decode back to original address</li>
+                            <li><strong>Type Detection:</strong> Automatically detects and encodes address type (P2PKH, P2SH, P2WPKH)</li>
+                            <li><strong>Universal:</strong> Works with any Dogecoin address type</li>
+                        </ul>
+                        <p><strong>How It Works:</strong></p>
+                        <ul>
+                            <li><strong>Encoding:</strong> Converts 25-byte address to word sequence using 64-word base encoding</li>
+                            <li><strong>Type Word:</strong> First word indicates address type (dog=P2PKH, safe=P2SH, fast=P2WPKH, time=Time-locked)</li>
+                            <li><strong>Payload:</strong> Address bytes encoded as word sequence</li>
+                            <li><strong>Checksum:</strong> Last word is a checksum for validation (valid, check, proof, solid, sound, sure, true, good)</li>
+                        </ul>
+                        <p>
+                            <strong>Use Cases:</strong> Perfect for easy-to-read addresses, voice sharing, making cryptocurrency more accessible, and creating memorable address representations!
+                        </p>
+                        </div>
+                    </div>
+
+                    <h3 style="color: #ffc107; margin-top: 30px; margin-bottom: 15px;"><span class="material-icons" style="font-size: 1em; vertical-align: middle;">swap_horiz</span> Convert to DogeWords</h3>
+                    <div class="input-group">
+                        <label for="dogewords-input">Dogecoin Address:</label>
+                        <input type="text" id="dogewords-input" placeholder="e.g., DTqAFgNNUgiPEfFmc4HZUkqJ4sz5vADd1n">
+                    </div>
+                    <button class="button" onclick="convertToDogeWords()">Convert to DogeWords</button>
+                    <div id="dogewords-encode-result" class="result" style="display: none;"></div>
+
+                    <h3 style="color: #ffc107; margin-top: 30px; margin-bottom: 15px;"><span class="material-icons" style="font-size: 1em; vertical-align: middle;">verified</span> Verify DogeWords</h3>
+                    <div class="input-group">
+                        <label for="dogewords-verify-input">DogeWords Sequence:</label>
+                        <input type="text" id="dogewords-verify-input" placeholder="Paste word sequence here">
+                    </div>
+                    <button class="button" onclick="verifyDogeWordsInput()">Verify DogeWords</button>
+                    <div id="dogewords-verify-result" class="result" style="display: none;"></div>
+
+                    <h3 style="color: #ffc107; margin-top: 30px; margin-bottom: 15px;"><span class="material-icons" style="font-size: 1em; vertical-align: middle;">lock_open</span> Decode DogeWords</h3>
+                    <div class="input-group">
+                        <label for="dogewords-decode-input">DogeWords Sequence:</label>
+                        <input type="text" id="dogewords-decode-input" placeholder="Paste word sequence here">
+                    </div>
+                    <button class="button" onclick="decodeDogeWordsInput()">Decode to Dogecoin Address</button>
+                    <div id="dogewords-decode-result" class="result" style="display: none;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Converter Modal -->
+        <div id="converter-modal" class="modal-overlay" onclick="closeConverterModal(event)">
+            <div class="modal" onclick="event.stopPropagation()">
+                <div class="modal-header">
+                    <h3>
+                        <span class="material-icons">apps</span>
+                        Other Converters
+                    </h3>
+                    <button class="modal-close" onclick="closeConverterModal()">
+                        <span class="material-icons">close</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="modal-options">
+                        <div class="modal-option" onclick="selectConverter('dogemoji')">
+                            <div class="modal-option-icon">
+                                <span class="material-icons">emoji_emotions</span>
+                            </div>
+                            <div class="modal-option-content">
+                                <div class="modal-option-title">DogeMoji</div>
+                                <div class="modal-option-description">Convert addresses to emoji sequences</div>
+                            </div>
+                            <span class="material-icons" style="color: #b0b0b0;">chevron_right</span>
+                        </div>
+                        <div class="modal-option" onclick="selectConverter('dogewords')">
+                            <div class="modal-option-icon">
+                                <span class="material-icons">text_fields</span>
+                            </div>
+                            <div class="modal-option-content">
+                                <div class="modal-option-title">DogeWords</div>
+                                <div class="modal-option-description">Convert addresses to word sequences</div>
+                            </div>
+                            <span class="material-icons" style="color: #b0b0b0;">chevron_right</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>D-IBAN v1.0 — Dogecoin IBAN-Style Address Format</p>
+            <p style="font-size: 0.85em; margin-top: 8px; opacity: 0.8;">Compliant with <a href="https://www.iso.org/standard/81090.html" target="_blank" style="color: #ffc107; text-decoration: underline;">ISO 13616-1:2020</a> International Standard</p>
+            <a href="https://github.com/qlpqlp/D-IBAN" target="_blank" class="footer-github" title="View on GitHub">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" style="vertical-align: middle;">
+                    <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                </svg>
+                <span>View on GitHub</span>
+            </a>
+        </div>
+    </div>
+
+    <script src="js/diban.js"></script>
+    <script src="js/dogemoji.js"></script>
+    <script src="js/dogewords.js"></script>
+    <script src="js/diban-ui.js"></script>
+</body>
+</html>
+
