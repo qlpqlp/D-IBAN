@@ -27,12 +27,20 @@
 - 🔄 **Fully Reversible** - 100% lossless conversion back to original address
 - 🎨 **Visual Appeal** - Perfect for social media, QR codes, and sharing
 
-### DogeWords Protocol (NEW!)
+### DogeWords Protocol
 - 📝 **Word-Based Encoding** - Convert addresses to mnemonic-style word sequences
 - 💬 **Human-Friendly** - Uses short, positive, kind words that are easy to read and remember
 - ✅ **Built-in Validation** - Checksum word for error detection
 - 🔄 **Fully Reversible** - 100% lossless conversion back to original address
 - 🎯 **Mnemonic Style** - Similar to seed phrase mnemonics, but for addresses
+
+### Steganography Protocol (NEW!)
+- 🖼️ **Image-Based Encoding** - Hide Dogecoin addresses inside images using LSB steganography
+- 👁️ **Invisible Encoding** - Encoded images look identical to the original - no visible changes
+- 🔒 **LSB Technique** - Uses Least Significant Bit encoding in RGB channels for maximum stealth
+- ✅ **Built-in Validation** - Magic marker "DOGE" identifies encoded images
+- 🔄 **Fully Reversible** - 100% lossless conversion back to original address
+- 🎨 **PNG Format** - Encoded images saved as PNG to preserve pixel data
 
 ## 📋 Table of Contents
 
@@ -46,6 +54,7 @@
 - [Examples](#examples)
 - [DogeMoji Protocol](#dogemoji-protocol)
 - [DogeWords Protocol](#dogewords-protocol)
+- [Steganography Protocol](#steganography-protocol)
 - [Browser Support](#browser-support)
 - [Bank Implementation](#bank-implementation)
 - [License](#license)
@@ -118,6 +127,9 @@ Include the JavaScript files in your HTML:
 <!-- Optional: DogeWords converter -->
 <script src="js/dogewords.js"></script>
 
+<!-- Optional: Steganography converter -->
+<script src="js/steganography.js"></script>
+
 <!-- UI functions -->
 <script src="js/diban-ui.js"></script>
 ```
@@ -165,6 +177,7 @@ Open `docs/index.html` in a web browser to use the interactive converter with:
 - **Other Converters**: Access additional conversion options:
   - **DogeMoji**: Convert addresses to emoji sequences
   - **DogeWords**: Convert addresses to word sequences (mnemonic-style)
+  - **Steganography**: Encode addresses in images using steganography
 
 ## API Reference
 
@@ -471,6 +484,96 @@ if (verifyDogeWords(words.words)) {
 const address = decodeDogeWords(words.words);
 console.log(address.address);  // Original Dogecoin address
 ```
+
+## Steganography Protocol
+
+**Steganography** allows you to hide a Dogecoin address inside an image using LSB (Least Significant Bit) encoding. The encoded image looks identical to the original, making it perfect for sharing addresses in a hidden way.
+
+### Why Steganography?
+
+- **Invisible**: The encoded image looks identical to the original - no visible changes
+- **Stealth**: Uses LSB encoding in RGB channels for maximum stealth
+- **Shareable**: Perfect for sharing addresses in images, artwork, or social media
+- **Validatable**: Magic marker "DOGE" identifies encoded images
+- **Universal**: Works with all Dogecoin address types
+
+### How Steganography Works
+
+1. **Magic Marker**: Uses "DOGE" marker (4 bytes) to identify encoded images
+2. **Length Header**: Stores address length (2 bytes) for proper decoding
+3. **LSB Encoding**: Embeds address bytes in the Least Significant Bit of RGB channels
+4. **Pixel Storage**: Each pixel stores 3 bits (one in each RGB channel)
+5. **PNG Format**: Encoded images saved as PNG to preserve pixel data
+
+### Technical Details
+
+- **Encoding**: Converts Dogecoin address to bytes and embeds them in LSB of image pixels
+- **Capacity**: Each pixel stores 3 bits, so larger images can store more data
+- **Format**: Images are saved as PNG to preserve exact pixel values
+- **Compatibility**: Works with any image format that can be loaded into a canvas
+
+### Example
+
+```javascript
+// Include the library
+<script src="js/steganography.js"></script>
+
+// Encode address into image
+const imageFile = document.getElementById('image-input').files[0];
+const address = "DTqAFgNNUgiPEfFmc4HZUkqJ4sz5vADd1n";
+
+encodeAddressInImage(imageFile, address)
+    .then(result => {
+        console.log("Encoded image URL:", result.url);
+        console.log("Address type:", result.type.name);
+        // Download the encoded image
+        const link = document.createElement('a');
+        link.href = result.url;
+        link.download = 'dogecoin-encoded.png';
+        link.click();
+    })
+    .catch(error => {
+        console.error("Encoding failed:", error);
+    });
+
+// Decode address from image
+const encodedImageFile = document.getElementById('encoded-image-input').files[0];
+
+decodeAddressFromImage(encodedImageFile)
+    .then(result => {
+        console.log("Decoded address:", result.address);
+        console.log("Address type:", result.type.name);
+    })
+    .catch(error => {
+        console.error("Decoding failed:", error);
+    });
+```
+
+### Usage
+
+```javascript
+// Encode address in image
+const result = await encodeAddressInImage(imageFile, dogeAddress);
+// Returns: { blob, url, type, originalSize, newSize }
+
+// Decode address from image
+const decoded = await decodeAddressFromImage(encodedImageFile);
+// Returns: { address, type }
+```
+
+### Requirements
+
+- Image must be large enough to store the address (minimum pixels calculated automatically)
+- PNG format recommended for best results (preserves exact pixel values)
+- Modern browser with Canvas API support
+
+### Use Cases
+
+- **Artwork Sharing**: Hide addresses in digital artwork or images
+- **Social Media**: Share addresses in images on social platforms
+- **Secret Sharing**: Create hidden address sharing methods
+- **QR Codes**: Encode addresses in custom QR code images
+- **Creative Applications**: Integrate addresses into visual designs
 
 ## Browser Support
 
