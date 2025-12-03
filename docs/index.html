@@ -1311,6 +1311,68 @@ class PaymentService {
                     <div id="dogewords-decode-result" class="result" style="display: none;"></div>
                 </div>
             </div>
+
+            <!-- Steganography Protocol -->
+            <div id="steganography-tab" class="tab-content">
+                <div class="section">
+                    <h2><span class="material-icons">image</span>Steganography - Image Address Encoding</h2>
+                    
+                    <div class="protocol-description">
+                        <div class="protocol-description-header expanded" onclick="toggleProtocolDescription(this)">
+                            <h3><span class="material-icons">info</span>About Steganography Protocol</h3>
+                            <span class="material-icons expand-icon">expand_more</span>
+                        </div>
+                        <div class="protocol-description-content expanded">
+                        <p>
+                            <strong>Steganography</strong> allows you to hide a Dogecoin address inside an image using LSB (Least Significant Bit) encoding. The encoded image looks identical to the original, making it perfect for sharing addresses in a hidden way.
+                        </p>
+                        <p><strong>Key Features:</strong></p>
+                        <ul>
+                            <li><strong>Invisible Encoding:</strong> The encoded image looks identical to the original - no visible changes</li>
+                            <li><strong>LSB Technique:</strong> Uses Least Significant Bit encoding in RGB channels for maximum stealth</li>
+                            <li><strong>Lossless:</strong> 100% reversible - can decode back to original address</li>
+                            <li><strong>Type Detection:</strong> Automatically detects and encodes address type (P2PKH, P2SH, P2WPKH)</li>
+                            <li><strong>Universal:</strong> Works with any Dogecoin address type</li>
+                            <li><strong>PNG Format:</strong> Encoded images are saved as PNG to preserve pixel data</li>
+                        </ul>
+                        <p><strong>How It Works:</strong></p>
+                        <ul>
+                            <li><strong>Encoding:</strong> Converts Dogecoin address to bytes and embeds them in the LSB of image pixels</li>
+                            <li><strong>Magic Marker:</strong> Uses "DOGE" marker to identify encoded images</li>
+                            <li><strong>Length Header:</strong> Stores address length for proper decoding</li>
+                            <li><strong>Pixel Storage:</strong> Each pixel stores 3 bits (one in each RGB channel)</li>
+                            <li><strong>Decoding:</strong> Extracts LSB from pixels and reconstructs the address</li>
+                        </ul>
+                        <p>
+                            <strong>Use Cases:</strong> Perfect for sharing addresses in images, hiding addresses in artwork, creating secret address sharing methods, and making cryptocurrency addresses more shareable through images!
+                        </p>
+                        <p>
+                            <strong>Note:</strong> The image must be large enough to store the address. Smaller images may not have enough pixels. PNG format is recommended for best results.
+                        </p>
+                        </div>
+                    </div>
+
+                    <h3 style="color: #ffc107; margin-top: 30px; margin-bottom: 15px;"><span class="material-icons" style="font-size: 1em; vertical-align: middle;">swap_horiz</span> Encode Address in Image</h3>
+                    <div class="input-group">
+                        <label for="steg-address-input">Dogecoin Address:</label>
+                        <input type="text" id="steg-address-input" placeholder="e.g., DTqAFgNNUgiPEfFmc4HZUkqJ4sz5vADd1n">
+                    </div>
+                    <div class="input-group">
+                        <label for="steg-image-input">Select Image:</label>
+                        <input type="file" id="steg-image-input" accept="image/*" style="padding: 10px;">
+                    </div>
+                    <button class="button" onclick="encodeAddressInImageUI()">Encode Address in Image</button>
+                    <div id="steg-encode-result" class="result" style="display: none;"></div>
+
+                    <h3 style="color: #ffc107; margin-top: 30px; margin-bottom: 15px;"><span class="material-icons" style="font-size: 1em; vertical-align: middle;">lock_open</span> Decode Address from Image</h3>
+                    <div class="input-group">
+                        <label for="steg-decode-image-input">Select Encoded Image:</label>
+                        <input type="file" id="steg-decode-image-input" accept="image/*" style="padding: 10px;">
+                    </div>
+                    <button class="button" onclick="decodeAddressFromImageUI()">Decode Address from Image</button>
+                    <div id="steg-decode-result" class="result" style="display: none;"></div>
+                </div>
+            </div>
         </div>
 
         <!-- Converter Modal -->
@@ -1347,6 +1409,16 @@ class PaymentService {
                             </div>
                             <span class="material-icons" style="color: #b0b0b0;">chevron_right</span>
                         </div>
+                        <div class="modal-option" onclick="selectConverter('steganography')">
+                            <div class="modal-option-icon">
+                                <span class="material-icons">image</span>
+                            </div>
+                            <div class="modal-option-content">
+                                <div class="modal-option-title">Steganography</div>
+                                <div class="modal-option-description">Encode addresses in images using steganography</div>
+                            </div>
+                            <span class="material-icons" style="color: #b0b0b0;">chevron_right</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1367,6 +1439,7 @@ class PaymentService {
     <script src="js/diban.js"></script>
     <script src="js/dogemoji.js"></script>
     <script src="js/dogewords.js"></script>
+    <script src="js/steganography.js"></script>
     <script src="js/diban-ui.js"></script>
 </body>
 </html>

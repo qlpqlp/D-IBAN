@@ -40,7 +40,7 @@ function switchTab(tabName) {
     }
     
     // Handle "Other Converters" tab button activation
-    if (tabName === 'dogemoji' || tabName === 'dogewords') {
+    if (tabName === 'dogemoji' || tabName === 'dogewords' || tabName === 'steganography') {
         // Find the "Other Converters" button and make it active
         const otherConvertersButton = Array.from(document.querySelectorAll('.tab-button')).find(btn => {
             const text = btn.textContent.trim();
@@ -52,7 +52,7 @@ function switchTab(tabName) {
     }
     
     // Add active class to clicked button (for non-dropdown tabs)
-    if (tabName !== 'dogemoji' && tabName !== 'dogewords') {
+    if (tabName !== 'dogemoji' && tabName !== 'dogewords' && tabName !== 'steganography') {
         const evt = typeof event !== 'undefined' ? event : window.event;
         if (evt) {
             const clickedButton = evt.target.closest('.tab-button');
@@ -405,6 +405,93 @@ function decodeDogeWordsInput() {
         resultDiv.innerHTML = `<span class="result-label"><span class="material-icons" style="font-size: 1em; vertical-align: middle;">error</span> Error:</span>${error.message}`;
         resultDiv.style.display = 'block';
     }
+}
+
+/************* STEGANOGRAPHY UI FUNCTIONS **************/
+function encodeAddressInImageUI() {
+    const addressInput = document.getElementById('steg-address-input').value.trim();
+    const imageInput = document.getElementById('steg-image-input');
+    const resultDiv = document.getElementById('steg-encode-result');
+    
+    if (!addressInput) {
+        resultDiv.className = 'result error';
+        resultDiv.innerHTML = '<span class="result-label"><span class="material-icons" style="font-size: 1em; vertical-align: middle;">error</span> Error:</span>Please enter a Dogecoin address';
+        resultDiv.style.display = 'block';
+        return;
+    }
+    
+    if (!imageInput.files || imageInput.files.length === 0) {
+        resultDiv.className = 'result error';
+        resultDiv.innerHTML = '<span class="result-label"><span class="material-icons" style="font-size: 1em; vertical-align: middle;">error</span> Error:</span>Please select an image file';
+        resultDiv.style.display = 'block';
+        return;
+    }
+    
+    const imageFile = imageInput.files[0];
+    
+    // Show loading state
+    resultDiv.className = 'result info';
+    resultDiv.innerHTML = '<span class="result-label"><span class="material-icons" style="font-size: 1em; vertical-align: middle;">hourglass_empty</span> Processing...</span>Encoding address into image...';
+    resultDiv.style.display = 'block';
+    
+    window.encodeAddressInImage(imageFile, addressInput)
+        .then(result => {
+            resultDiv.className = 'result success';
+            resultDiv.innerHTML = `
+                <span class="result-label"><span class="material-icons" style="font-size: 1em; vertical-align: middle;">image</span> Encoded Image:</span>
+                <div style="margin: 15px 0;">
+                    <img src="${result.url}" alt="Encoded image" style="max-width: 100%; border-radius: 8px; border: 2px solid #333333;">
+                </div>
+                <div style="margin-top: 12px; padding: 10px; background: rgba(255, 193, 7, 0.1); border-radius: 6px; border-left: 3px solid #ffc107;">
+                    <strong style="color: #ffc107;">Address Type:</strong> ${result.type.name} (${result.type.description})<br>
+                    <strong style="color: #ffc107;">Original Size:</strong> ${(result.originalSize / 1024).toFixed(2)} KB<br>
+                    <strong style="color: #ffc107;">Encoded Size:</strong> ${(result.newSize / 1024).toFixed(2)} KB
+                </div>
+                <a href="${result.url}" download="dogecoin-encoded.png" class="button" style="margin-top: 15px; text-decoration: none; display: inline-block; text-align: center;">
+                    <span class="material-icons" style="font-size: 0.9em; vertical-align: middle;">download</span> Download Encoded Image
+                </a>
+            `;
+        })
+        .catch(error => {
+            resultDiv.className = 'result error';
+            resultDiv.innerHTML = `<span class="result-label"><span class="material-icons" style="font-size: 1em; vertical-align: middle;">error</span> Error:</span>${error.message}`;
+        });
+}
+
+function decodeAddressFromImageUI() {
+    const imageInput = document.getElementById('steg-decode-image-input');
+    const resultDiv = document.getElementById('steg-decode-result');
+    
+    if (!imageInput.files || imageInput.files.length === 0) {
+        resultDiv.className = 'result error';
+        resultDiv.innerHTML = '<span class="result-label"><span class="material-icons" style="font-size: 1em; vertical-align: middle;">error</span> Error:</span>Please select an image file';
+        resultDiv.style.display = 'block';
+        return;
+    }
+    
+    const imageFile = imageInput.files[0];
+    
+    // Show loading state
+    resultDiv.className = 'result info';
+    resultDiv.innerHTML = '<span class="result-label"><span class="material-icons" style="font-size: 1em; vertical-align: middle;">hourglass_empty</span> Processing...</span>Decoding address from image...';
+    resultDiv.style.display = 'block';
+    
+    window.decodeAddressFromImage(imageFile)
+        .then(result => {
+            resultDiv.className = 'result success';
+            resultDiv.innerHTML = `
+                <span class="result-label"><span class="material-icons" style="font-size: 1em; vertical-align: middle;">account_balance_wallet</span> Dogecoin Address:</span>
+                <div style="font-size: 1.1em; margin: 10px 0;">${result.address}</div>
+                <div style="margin-top: 12px; padding: 10px; background: rgba(255, 193, 7, 0.1); border-radius: 6px; border-left: 3px solid #ffc107;">
+                    <strong style="color: #ffc107;">Address Type:</strong> ${result.type.name} (${result.type.description})
+                </div>
+                <button class="copy-button" onclick="copyToClipboard('${result.address}', this)"><span class="material-icons" style="font-size: 0.9em; vertical-align: middle;">content_copy</span> Copy Address</button>
+            `;
+        })
+        .catch(error => {
+            resultDiv.className = 'result error';
+            resultDiv.innerHTML = `<span class="result-label"><span class="material-icons" style="font-size: 1em; vertical-align: middle;">error</span> Error:</span>${error.message}`;
+        });
 }
 
 // Initialize event listeners when DOM is ready
