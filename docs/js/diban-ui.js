@@ -408,14 +408,31 @@ function decodeDogeWordsInput() {
 }
 
 /************* STEGANOGRAPHY UI FUNCTIONS **************/
+// Update input label and placeholder based on encode type selection
+function updateStegEncodeType() {
+    const encodeType = document.querySelector('input[name="steg-encode-type"]:checked').value;
+    const label = document.getElementById('steg-input-label');
+    const input = document.getElementById('steg-address-input');
+    
+    if (encodeType === 'private_key') {
+        label.textContent = 'Private Key (WIF):';
+        input.placeholder = 'e.g., QP3k9Y2FgQR6JNznPp1rKs7ZvW5xXyZ8mN4bVcDeFgHjKlMnOpQrStUvWxYz';
+    } else {
+        label.textContent = 'Dogecoin Address:';
+        input.placeholder = 'e.g., DTqAFgNNUgiPEfFmc4HZUkqJ4sz5vADd1n';
+    }
+}
+
 function encodeAddressInImageUI() {
     const addressInput = document.getElementById('steg-address-input').value.trim();
     const imageInput = document.getElementById('steg-image-input');
     const resultDiv = document.getElementById('steg-encode-result');
+    const encodeType = document.querySelector('input[name="steg-encode-type"]:checked').value;
     
     if (!addressInput) {
         resultDiv.className = 'result error';
-        resultDiv.innerHTML = '<span class="result-label"><span class="material-icons" style="font-size: 1em; vertical-align: middle;">error</span> Error:</span>Please enter a Dogecoin address';
+        const dataType = encodeType === 'private_key' ? 'private key' : 'Dogecoin address';
+        resultDiv.innerHTML = `<span class="result-label"><span class="material-icons" style="font-size: 1em; vertical-align: middle;">error</span> Error:</span>Please enter a ${dataType}`;
         resultDiv.style.display = 'block';
         return;
     }
@@ -428,24 +445,29 @@ function encodeAddressInImageUI() {
     }
     
     const imageFile = imageInput.files[0];
+    const dataType = encodeType === 'private_key' ? 'private key' : 'address';
     
     // Show loading state
     resultDiv.className = 'result info';
-    resultDiv.innerHTML = '<span class="result-label"><span class="material-icons" style="font-size: 1em; vertical-align: middle;">hourglass_empty</span> Processing...</span>Encoding address into image...';
+    resultDiv.innerHTML = `<span class="result-label"><span class="material-icons" style="font-size: 1em; vertical-align: middle;">hourglass_empty</span> Processing...</span>Encoding ${dataType} into image...`;
     resultDiv.style.display = 'block';
     
     window.encodeAddressInImage(imageFile, addressInput)
         .then(result => {
             resultDiv.className = 'result success';
+            const dataTypeLabel = result.dataType === 'private_key' ? 'Private Key' : 'Address';
+            const typeInfo = result.dataType === 'private_key' 
+                ? `<strong style="color: #ffc107;">Type:</strong> ${result.type.name} (${result.type.description})`
+                : `<strong style="color: #ffc107;">Address Type:</strong> ${result.type.name} (${result.type.description})`;
+            
             resultDiv.innerHTML = `
                 <span class="result-label"><span class="material-icons" style="font-size: 1em; vertical-align: middle;">image</span> Encoded Image:</span>
                 <div style="margin: 15px 0;">
                     <img src="${result.url}" alt="Encoded image" style="max-width: 100%; border-radius: 8px; border: 2px solid #333333;">
                 </div>
                 <div style="margin-top: 12px; padding: 10px; background: rgba(255, 193, 7, 0.1); border-radius: 6px; border-left: 3px solid #ffc107;">
-                    <strong style="color: #ffc107;">Address Type:</strong> ${result.type.name} (${result.type.description})<br>
-                    <strong style="color: #ffc107;">Original Size:</strong> ${(result.originalSize / 1024).toFixed(2)} KB<br>
-                    <strong style="color: #ffc107;">Encoded Size:</strong> ${(result.newSize / 1024).toFixed(2)} KB
+                    <strong style="color: #ffc107;">Data Type:</strong> ${dataTypeLabel}<br>
+                    ${typeInfo}
                 </div>
                 <a href="${result.url}" download="dogecoin-encoded.png" class="button" style="margin-top: 15px; text-decoration: none; display: inline-block; text-align: center;">
                     <span class="material-icons" style="font-size: 0.9em; vertical-align: middle;">download</span> Download Encoded Image
@@ -473,20 +495,39 @@ function decodeAddressFromImageUI() {
     
     // Show loading state
     resultDiv.className = 'result info';
-    resultDiv.innerHTML = '<span class="result-label"><span class="material-icons" style="font-size: 1em; vertical-align: middle;">hourglass_empty</span> Processing...</span>Decoding address from image...';
+    resultDiv.innerHTML = '<span class="result-label"><span class="material-icons" style="font-size: 1em; vertical-align: middle;">hourglass_empty</span> Processing...</span>Decoding from image...';
     resultDiv.style.display = 'block';
     
     window.decodeAddressFromImage(imageFile)
         .then(result => {
             resultDiv.className = 'result success';
-            resultDiv.innerHTML = `
-                <span class="result-label"><span class="material-icons" style="font-size: 1em; vertical-align: middle;">account_balance_wallet</span> Dogecoin Address:</span>
-                <div style="font-size: 1.1em; margin: 10px 0;">${result.address}</div>
-                <div style="margin-top: 12px; padding: 10px; background: rgba(255, 193, 7, 0.1); border-radius: 6px; border-left: 3px solid #ffc107;">
-                    <strong style="color: #ffc107;">Address Type:</strong> ${result.type.name} (${result.type.description})
-                </div>
-                <button class="copy-button" onclick="copyToClipboard('${result.address}', this)"><span class="material-icons" style="font-size: 0.9em; vertical-align: middle;">content_copy</span> Copy Address</button>
-            `;
+            
+            if (result.dataType === 'private_key') {
+                // Private key decoded
+                resultDiv.innerHTML = `
+                    <span class="result-label"><span class="material-icons" style="font-size: 1em; vertical-align: middle;">vpn_key</span> Private Key (WIF):</span>
+                    <div style="font-size: 1.1em; margin: 10px 0; word-break: break-all; color: #ff6b6b; font-weight: bold;">${result.privateKey}</div>
+                    <div style="margin-top: 12px; padding: 10px; background: rgba(255, 107, 107, 0.1); border-radius: 6px; border-left: 3px solid #ff6b6b;">
+                        <strong style="color: #ff6b6b;">⚠️ Security Warning:</strong> Keep this private key secure! Anyone with access to this key can control your funds.<br>
+                        <strong style="color: #ff6b6b;">Type:</strong> ${result.type.name} (${result.type.description})
+                    </div>
+                    <button class="copy-button" onclick="copyToClipboard('${result.privateKey}', this)" style="background: #ff6b6b;">
+                        <span class="material-icons" style="font-size: 0.9em; vertical-align: middle;">content_copy</span> Copy Private Key
+                    </button>
+                `;
+            } else {
+                // Address decoded
+                resultDiv.innerHTML = `
+                    <span class="result-label"><span class="material-icons" style="font-size: 1em; vertical-align: middle;">account_balance_wallet</span> Dogecoin Address:</span>
+                    <div style="font-size: 1.1em; margin: 10px 0;">${result.address}</div>
+                    <div style="margin-top: 12px; padding: 10px; background: rgba(255, 193, 7, 0.1); border-radius: 6px; border-left: 3px solid #ffc107;">
+                        <strong style="color: #ffc107;">Address Type:</strong> ${result.type.name} (${result.type.description})
+                    </div>
+                    <button class="copy-button" onclick="copyToClipboard('${result.address}', this)">
+                        <span class="material-icons" style="font-size: 0.9em; vertical-align: middle;">content_copy</span> Copy Address
+                    </button>
+                `;
+            }
         })
         .catch(error => {
             resultDiv.className = 'result error';
@@ -563,6 +604,16 @@ document.addEventListener('DOMContentLoaded', function() {
         dogewordsDecodeInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') decodeDogeWordsInput();
         });
+    }
+
+    // Steganography encode type radio buttons
+    const stegTypeRadios = document.querySelectorAll('input[name="steg-encode-type"]');
+    if (stegTypeRadios.length > 0) {
+        stegTypeRadios.forEach(radio => {
+            radio.addEventListener('change', updateStegEncodeType);
+        });
+        // Initialize on page load
+        updateStegEncodeType();
     }
 });
 

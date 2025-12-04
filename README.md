@@ -35,12 +35,14 @@
 - 🎯 **Mnemonic Style** - Similar to seed phrase mnemonics, but for addresses
 
 ### Steganography Protocol (NEW!)
-- 🖼️ **Image-Based Encoding** - Hide Dogecoin addresses inside images using LSB steganography
+- 🖼️ **Image-Based Encoding** - Hide Dogecoin addresses or private keys inside images using LSB steganography
+- 🔑 **Private Key Support** - Encode and decode WIF format private keys in addition to addresses
 - 👁️ **Invisible Encoding** - Encoded images look identical to the original - no visible changes
 - 🔒 **LSB Technique** - Uses Least Significant Bit encoding in RGB channels for maximum stealth
 - ✅ **Built-in Validation** - Magic marker "DOGE" identifies encoded images
-- 🔄 **Fully Reversible** - 100% lossless conversion back to original address
+- 🔄 **Fully Reversible** - 100% lossless conversion back to original address or private key
 - 🎨 **PNG Format** - Encoded images saved as PNG to preserve pixel data
+- 🎯 **Transparency Handling** - Automatically converts transparent images to opaque for reliable encoding
 
 ## 📋 Table of Contents
 
@@ -487,30 +489,35 @@ console.log(address.address);  // Original Dogecoin address
 
 ## Steganography Protocol
 
-**Steganography** allows you to hide a Dogecoin address inside an image using LSB (Least Significant Bit) encoding. The encoded image looks identical to the original, making it perfect for sharing addresses in a hidden way.
+**Steganography** allows you to hide a Dogecoin address or private key inside an image using LSB (Least Significant Bit) encoding. The encoded image looks identical to the original, making it perfect for sharing addresses or securely storing private keys in a hidden way.
 
 ### Why Steganography?
 
 - **Invisible**: The encoded image looks identical to the original - no visible changes
 - **Stealth**: Uses LSB encoding in RGB channels for maximum stealth
 - **Shareable**: Perfect for sharing addresses in images, artwork, or social media
+- **Secure Storage**: Encode private keys in images for secure backup (use with caution!)
 - **Validatable**: Magic marker "DOGE" identifies encoded images
-- **Universal**: Works with all Dogecoin address types
+- **Universal**: Works with all Dogecoin address types and WIF private keys
 
 ### How Steganography Works
 
 1. **Magic Marker**: Uses "DOGE" marker (4 bytes) to identify encoded images
-2. **Length Header**: Stores address length (2 bytes) for proper decoding
-3. **LSB Encoding**: Embeds address bytes in the Least Significant Bit of RGB channels
-4. **Pixel Storage**: Each pixel stores 3 bits (one in each RGB channel)
-5. **PNG Format**: Encoded images saved as PNG to preserve pixel data
+2. **Type Byte**: Stores data type (0x00 = address, 0x01 = private key) for proper decoding
+3. **Length Header**: Stores data length (2 bytes) for proper decoding
+4. **LSB Encoding**: Embeds data bytes in the Least Significant Bit of RGB channels
+5. **Pixel Storage**: Each pixel stores 3 bits (one in each RGB channel)
+6. **PNG Format**: Encoded images saved as PNG to preserve pixel data
+7. **Transparency Handling**: Transparent images are converted to opaque (white background) for reliable encoding
 
 ### Technical Details
 
-- **Encoding**: Converts Dogecoin address to bytes and embeds them in LSB of image pixels
+- **Encoding**: Converts Dogecoin address or private key to bytes and embeds them in LSB of image pixels
 - **Capacity**: Each pixel stores 3 bits, so larger images can store more data
 - **Format**: Images are saved as PNG to preserve exact pixel values
 - **Compatibility**: Works with any image format that can be loaded into a canvas
+- **Transparency**: Transparent images are automatically converted to opaque (white background) to ensure reliable encoding/decoding
+- **Backward Compatible**: Can decode images encoded with older format (address-only)
 
 ### Example
 
@@ -525,7 +532,8 @@ const address = "DTqAFgNNUgiPEfFmc4HZUkqJ4sz5vADd1n";
 encodeAddressInImage(imageFile, address)
     .then(result => {
         console.log("Encoded image URL:", result.url);
-        console.log("Address type:", result.type.name);
+        console.log("Data type:", result.dataType); // "address" or "private_key"
+        console.log("Type info:", result.type.name);
         // Download the encoded image
         const link = document.createElement('a');
         link.href = result.url;
@@ -536,13 +544,30 @@ encodeAddressInImage(imageFile, address)
         console.error("Encoding failed:", error);
     });
 
-// Decode address from image
+// Encode private key into image (WIF format)
+const privateKey = "QP3k9Y2FgQR6JNznPp1rKs7ZvW5xXyZ8mN4bVcDeFgHjKlMnOpQrStUvWxYz";
+encodeAddressInImage(imageFile, privateKey)
+    .then(result => {
+        console.log("Encoded image URL:", result.url);
+        console.log("Data type:", result.dataType); // "private_key"
+        // ⚠️ WARNING: Keep this image secure! Anyone who decodes it will have your private key!
+    })
+    .catch(error => {
+        console.error("Encoding failed:", error);
+    });
+
+// Decode from image (automatically detects address or private key)
 const encodedImageFile = document.getElementById('encoded-image-input').files[0];
 
 decodeAddressFromImage(encodedImageFile)
     .then(result => {
-        console.log("Decoded address:", result.address);
-        console.log("Address type:", result.type.name);
+        if (result.dataType === "private_key") {
+            console.log("Decoded private key:", result.privateKey);
+            console.log("⚠️ WARNING: Keep this private key secure!");
+        } else {
+            console.log("Decoded address:", result.address);
+            console.log("Address type:", result.type.name);
+        }
     })
     .catch(error => {
         console.error("Decoding failed:", error);
@@ -554,24 +579,38 @@ decodeAddressFromImage(encodedImageFile)
 ```javascript
 // Encode address in image
 const result = await encodeAddressInImage(imageFile, dogeAddress);
-// Returns: { blob, url, type, originalSize, newSize }
+// Returns: { blob, url, type, dataType }
 
-// Decode address from image
+// Encode private key in image (WIF format)
+const result = await encodeAddressInImage(imageFile, privateKeyWIF);
+// Returns: { blob, url, type, dataType }
+
+// Decode from image (automatically detects type)
 const decoded = await decodeAddressFromImage(encodedImageFile);
-// Returns: { address, type }
+// Returns: { address, type, dataType } OR { privateKey, type, dataType }
 ```
 
 ### Requirements
 
-- Image must be large enough to store the address (minimum pixels calculated automatically)
+- Image must be large enough to store the data (minimum pixels calculated automatically)
 - PNG format recommended for best results (preserves exact pixel values)
 - Modern browser with Canvas API support
+- Transparent images are automatically converted to opaque (white background)
+
+### Security Warning
+
+⚠️ **IMPORTANT**: When encoding private keys:
+- **Never share images containing private keys publicly**
+- **Keep encoded private key images secure** - anyone who decodes them will have access to your funds
+- **Use strong encryption** for storing private key images
+- **Consider using addresses instead** for public sharing
 
 ### Use Cases
 
 - **Artwork Sharing**: Hide addresses in digital artwork or images
 - **Social Media**: Share addresses in images on social platforms
 - **Secret Sharing**: Create hidden address sharing methods
+- **Secure Backup**: Encode private keys in images for secure backup (use with extreme caution!)
 - **QR Codes**: Encode addresses in custom QR code images
 - **Creative Applications**: Integrate addresses into visual designs
 
